@@ -1,154 +1,176 @@
+//
 // Curious Minds Studio
-// YouTube Data API Integration
-
+// YouTube Data API v3
+//
 
 const channelId = "UC9z8-miJV8pgnrUioD1SmxQ";
-
 const apiKey = YOUTUBE_API_KEY;
 
 
+// Load channel statistics
 
-async function getChannelData(){
+async function getChannelData() {
 
-try {
+  try {
 
+    const url =
+    `https://www.googleapis.com/youtube/v3/channels?part=statistics&id=${channelId}&key=${apiKey}`;
 
-const url =
-`https://www.googleapis.com/youtube/v3/channels?part=statistics,snippet&id=${channelId}&key=${apiKey}`;
 
+    const response = await fetch(url);
+    const data = await response.json();
 
-const response = await fetch(url);
 
-const data = await response.json();
+    if (data.error) {
+      console.error("YouTube API Error:", data.error);
+      return;
+    }
 
 
-const stats = data.items[0].statistics;
+    if (!data.items || data.items.length === 0) {
+      console.error("Channel not found");
+      return;
+    }
 
 
-document.getElementById("subscriberCount").textContent =
-formatNumber(stats.subscriberCount);
+    const stats = data.items[0].statistics;
 
 
-document.getElementById("videoCount").textContent =
-formatNumber(stats.videoCount);
+    document.getElementById("subscriberCount").textContent =
+      formatNumber(stats.subscriberCount);
 
 
-document.getElementById("viewCount").textContent =
-formatNumber(stats.viewCount);
+    document.getElementById("videoCount").textContent =
+      formatNumber(stats.videoCount);
 
 
+    document.getElementById("viewCount").textContent =
+      formatNumber(stats.viewCount);
 
-}
 
-catch(error){
+  }
 
-console.log("Channel error:",error);
+  catch(error) {
 
-}
+    console.error("Channel loading error:", error);
 
-}
-
-
-
-
-async function getVideos(){
-
-try {
-
-
-const searchURL =
-
-`https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${channelId}&maxResults=6&order=date&type=video&key=${apiKey}`;
-
-
-
-const response = await fetch(searchURL);
-
-const data = await response.json();
-
-
-
-const grid = document.getElementById("videoGrid");
-
-
-grid.innerHTML = "";
-
-
-
-data.items.forEach(video=>{
-
-
-const id = video.id.videoId;
-
-
-const title = video.snippet.title;
-
-
-const thumbnail =
-video.snippet.thumbnails.high.url;
-
-
-
-grid.innerHTML += `
-
-<div class="video-card">
-
-<a href="https://youtube.com/watch?v=${id}"
-target="_blank">
-
-
-<img loading="lazy"
-src="${thumbnail}"
-alt="${title}">
-
-
-<div class="video-info">
-
-<h3>
-${title}
-</h3>
-
-
-</div>
-
-</a>
-
-</div>
-
-`;
-
-
-});
-
-
-
-}
-
-catch(error){
-
-console.log("Video error:",error);
-
-}
+  }
 
 }
 
 
 
 
-function formatNumber(number){
+// Load latest videos
 
-if(!number) return "--";
+async function getVideos() {
 
 
-return new Intl.NumberFormat("en-US",{
-notation:"compact"
-}).format(number);
+  try {
+
+
+    const url =
+    `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${channelId}&maxResults=6&order=date&type=video&key=${apiKey}`;
+
+
+
+    const response = await fetch(url);
+    const data = await response.json();
+
+
+
+    if (data.error) {
+
+      console.error("YouTube API Error:", data.error);
+      return;
+
+    }
+
+
+
+    const grid = document.getElementById("videoGrid");
+
+
+    grid.innerHTML = "";
+
+
+
+    data.items.forEach(video => {
+
+
+      const videoId = video.id.videoId;
+
+
+      const title = video.snippet.title;
+
+
+      const thumbnail =
+      video.snippet.thumbnails.high.url;
+
+
+
+      grid.innerHTML += `
+
+      <div class="video-card">
+
+        <a href="https://www.youtube.com/watch?v=${videoId}"
+        target="_blank">
+
+
+          <img 
+          loading="lazy"
+          src="${thumbnail}"
+          alt="${title}">
+
+
+          <div class="video-info">
+
+            <h3>${title}</h3>
+
+          </div>
+
+
+        </a>
+
+      </div>
+
+      `;
+
+
+    });
+
+
+  }
+
+
+  catch(error) {
+
+    console.error("Video loading error:", error);
+
+  }
+
 
 }
 
 
 
+
+
+function formatNumber(number) {
+
+  if (!number) return "--";
+
+
+  return new Intl.NumberFormat("en-US", {
+    notation: "compact"
+  }).format(number);
+
+}
+
+
+
+
+// Start
 
 getChannelData();
-
 getVideos();
